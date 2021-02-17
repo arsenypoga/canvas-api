@@ -13,13 +13,11 @@ func main() {
 	fmt.Println(token)
 
 	client := api.NewClient("nku", token)
-	resp, err := client.GetDashboardPositions(15610)
-
-	fmt.Println(resp.DashboardPositions["course_16912"])
-
+	resp, err := client.GetActivityStream(api.OnlyActiveUsers())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%+v\n", resp)
+	// fmt.Printf("%+v\n", (*resp)[0])
+	fmt.Println("%+V\n", resp)
 }
