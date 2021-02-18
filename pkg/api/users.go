@@ -114,6 +114,7 @@ type Announcement struct {
 	RootDiscussionEntries      interface{}
 }
 
+// Conversation is an ActivityStream conversation
 type Conversation struct {
 	ID               int64
 	Private          bool
@@ -129,6 +130,7 @@ type Conversation struct {
 	HTMLURL        string
 }
 
+//Conference is an ActivityStream conference
 type Conference struct {
 	ID int64
 
@@ -142,6 +144,7 @@ type Conference struct {
 	HTMLURL   string
 }
 
+// Collaboration is an ActivityStream collaboration
 type Collaboration struct {
 	ID int64
 
@@ -155,6 +158,7 @@ type Collaboration struct {
 	HTMLURL   string
 }
 
+// AssesmentRequest is an ActivityStream assessment request
 type AssesmentRequest struct {
 	ID int64
 
@@ -168,18 +172,22 @@ type AssesmentRequest struct {
 	HTMLURL   string
 }
 
+// SearchTerm is a search term to search by
 func SearchTerm(searchTerm string) AccountUsersOption {
 	return func(auo *AccountUsersOptions) {
 		auo.searchTerm = searchTerm
 	}
 }
 
+// EnrollmentType is an enrollment search filter
 func EnrollmentType(enrollmentType string) AccountUsersOption {
 	return func(auo *AccountUsersOptions) {
 		auo.enrollmentType = enrollmentType
 	}
 }
 
+// Sort is a sort search filter
+// Sort can only be one of: {"username" | "email" | "sis_id" | "last_login" | ""}
 func Sort(sort string) AccountUsersOption {
 	if sort != "username" && sort != "email" && sort != "sis_id" || sort != "last_login" && sort != "" {
 		return func(auo *AccountUsersOptions) {
@@ -191,6 +199,8 @@ func Sort(sort string) AccountUsersOption {
 	}
 }
 
+// Order is order search filter
+// Order can only be one of: {"asc" | "desc" | ""}
 func Order(order string) AccountUsersOption {
 	if order != "asc" && order != "desc" && order != "" {
 		return func(auo *AccountUsersOptions) {
@@ -202,6 +212,7 @@ func Order(order string) AccountUsersOption {
 	}
 }
 
+// GetAccountUsers returns the users of the account
 func (c *CanvasClient) GetAccountUsers(setters ...AccountUsersOption) (Users, error) {
 	args := &AccountUsersOptions{
 		searchTerm:     "",
@@ -281,12 +292,15 @@ func (c *CanvasClient) GetDashboardPositions(userID int64) (*DashboardPositions,
 	return &d, nil
 }
 
-func OnlyActiveUsers(active bool) ActivityStreamOptions {
-	return ActivityStreamOptions{
-		onlyActiveCourses: active,
+// WithOnlyActiveUsers returns only active users of the account
+func WithOnlyActiveUsers() ActivityStreamOption {
+	return func(aso *ActivityStreamOptions) {
+		aso.onlyActiveCourses = true
 	}
+
 }
 
+// GetActivityStream returns activity stream
 func (c *CanvasClient) GetActivityStream(setters ...ActivityStreamOption) (*ActivityStream, error) {
 	args := &ActivityStreamOptions{
 		onlyActiveCourses: false,
@@ -406,7 +420,7 @@ func activityStreamFromPlaceholder(placeholder *activityStreamPlaceholder) *Acti
 			}
 			stream.Conferences = append(stream.Conferences, c)
 		} else if item["type"] == "Submission" {
-			//TODO: Add this when the Sumbission interface is finished
+
 		} else if item["type"] == "Collaboration" {
 			c := Collaboration{
 				ID:        int64(item["conference_id"].(float64)),
@@ -437,4 +451,18 @@ func activityStreamFromPlaceholder(placeholder *activityStreamPlaceholder) *Acti
 		}
 	}
 	return &stream
+}
+
+// GetTodo returns todo list
+func (c *CanvasClient) GetTodo() (*[]Assignment, error) {
+	a := make([]Assignment, 0)
+
+	requestURL := fmt.Sprintf("%s/api/v1/users/self/todo", c.ClientURL())
+	err := c.getJSON(requestURL, &a)
+
+	if err != nil {
+		return &a, err
+	}
+
+	return &a, nil
 }
